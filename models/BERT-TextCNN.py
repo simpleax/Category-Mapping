@@ -1,5 +1,5 @@
 #! -*- coding: utf-8 -*-
-# 准确率 0.98577
+
 import json
 from bert4torch.tokenizers import Tokenizer
 from bert4torch.models import build_transformer_model, BaseModel
@@ -11,14 +11,13 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from sklearn import metrics
-import pdb
 import matplotlib.pyplot as plt
 
 maxlen = 256        # 最大长度
 batch_size = 16     # 批处理
-config_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/config.json'     # 配置文件的路径
-checkpoint_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/pytorch_model.bin'    # 保存模型训练进度的路径，防止长时间训练后的模型丢失
-dict_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/vocab.txt'     # 字典（dictionary）数据结构的路径
+config_path = './model/config.json'     # 配置文件的路径
+checkpoint_path = './model/pytorch_model.bin'    # 保存模型训练进度的路径，防止长时间训练后的模型丢失
+dict_path = './model/vocab.txt'     # 字典（dictionary）数据结构的路径
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'      # 设置计算设备
 
 # 建立分词器
@@ -52,7 +51,7 @@ def show_confusion_matrix(confusion, classes=["0", "1"], x_rot=-60, figsize=None
             plt.text(first_index, second_index, confusion[first_index][second_index])
 
     if save:
-        plt.savefig("E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_TextCNN/bert_textcnn_confusion_matrix.png")
+        plt.savefig("./bert_textcnn_confusion_matrix.png")
     plt.show()
 
 # 自定义的数据集类，它继承了PyTorch的内置ListDataset类，处理和管理数据
@@ -87,9 +86,9 @@ def collate_fn(batch):
 
 
 # 加载数据集
-train_dataloader = DataLoader(MyDataset('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/实验数据/train.json'),
+train_dataloader = DataLoader(MyDataset('./data/train.json'),
                               batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-test_dataloader = DataLoader(MyDataset('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/实验数据/test.json'),
+test_dataloader = DataLoader(MyDataset('./data/test.json'),
                              batch_size=batch_size, collate_fn=collate_fn)
 
 
@@ -189,7 +188,7 @@ class Evaluator(Callback):
         test_acc = evaluate(test_dataloader, "test")
         if test_acc > self.best_val_acc:
             self.best_val_acc = test_acc
-            model.save_weights('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_TextCNN/best_model.pt')
+            model.save_weights('./BERT_TextCNN/best_model.pt')
         print(f'val_acc: {test_acc:.5f}, best_val_acc: {self.best_val_acc:.5f}\n')
 
 
@@ -197,8 +196,8 @@ if True:
     evaluator = Evaluator()
     model.fit(train_dataloader, epochs=20, callbacks=[evaluator])
 
-model.load_weights('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_TextCNN/best_model.pt')
-#evaluate(test_dataloader, "test")
+model.load_weights('./BERT_TextCNN/best_model.pt')
+evaluate(test_dataloader, "test")
 
 pre = []
 gro = []

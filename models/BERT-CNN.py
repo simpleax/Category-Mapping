@@ -1,19 +1,17 @@
 #! -*- coding: utf-8 -*-
-# 准确率 0.98932
+
 import json
 from bert4torch.tokenizers import Tokenizer
 from bert4torch.models import build_transformer_model, BaseModel
 from bert4torch.callbacks import Callback
-from bert4torch.snippets import sequence_padding, text_segmentate, ListDataset, seed_everything, get_pool_emb
+from bert4torch.snippets import sequence_padding, ListDataset, get_pool_emb
 import torch.nn as nn
 import torch
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 from sklearn import metrics
-import pdb
 import matplotlib.pyplot as plt
-
 
 def show_confusion_matrix(confusion, classes=["0", "1"], x_rot=-60, figsize=None, save=True):
     """
@@ -42,15 +40,15 @@ def show_confusion_matrix(confusion, classes=["0", "1"], x_rot=-60, figsize=None
             plt.text(first_index, second_index, confusion[first_index][second_index])
 
     if save:
-        plt.savefig("E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_CNN/bert_cnn_confusion_matrix.png")
+        plt.savefig("./bert_cnn_confusion_matrix.png")
     plt.show()
 
 
 maxlen = 256
 batch_size = 16
-config_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/config.json'
-checkpoint_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/pytorch_model.bin'
-dict_path = 'E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/SiBert/model/vocab.txt'
+config_path = './model/config.json'
+checkpoint_path = './model/pytorch_model.bin'
+dict_path = './model/vocab.txt'
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 # 建立分词器
@@ -86,9 +84,9 @@ def collate_fn(batch):
 
 
 # 加载数据集
-train_dataloader = DataLoader(MyDataset('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/实验数据/train.json'),
+train_dataloader = DataLoader(MyDataset('./data/train.json'),
                               batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-test_dataloader = DataLoader(MyDataset('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/实验数据/test.json'),
+test_dataloader = DataLoader(MyDataset('./data/test.json'),
                              batch_size=batch_size, collate_fn=collate_fn)
 
 
@@ -107,9 +105,6 @@ class Model(BaseModel):
         self.conv2 = nn.Conv1d(in_channels=self.hidden_size, out_channels=self.filter_number, kernel_size=(3,),
                                padding="same", padding_mode="zeros")
 
-        # lstm
-        # self.lstm = nn.LSTM(100, 100, num_layers=1, bidirectional=True, batch_first=True)
-
         self.dropout = nn.Dropout(0.1)
         self.dense = nn.Linear(192, 2)
 
@@ -121,8 +116,7 @@ class Model(BaseModel):
         # cnn
         convolve2 = self.relu(self.conv2(trans_embedded))
         convolve2 = torch.transpose(convolve2, dim0=1, dim1=2)
-        # lstm
-        # lstm_output = self.lstm(seq_output)[0]
+
         feature_output = get_pool_emb(hidden_state=convolve2, attention_mask=token1_ids.gt(0).long(),
                                       pool_strategy='mean')
         output = self.dropout(feature_output)
@@ -136,10 +130,10 @@ model = Model().to(device)
 model.compile(
     loss=nn.CrossEntropyLoss(),
     optimizer=optim.AdamW(model.parameters(), lr=2e-5),
-    metrics=['acc'],
-    metrics2=['pre'],    # 评估指标为精确率precise
-    metrics3=['rec'],    # 召回率rcall
-    metrics4=['f1']      # f1分数
+    metrics=['acc'],  # 准确率accuracy
+    metrics2=['pre'],  # 精确率precision
+    metrics3=['rec'],  # 召回率rcall
+    metrics4=['f1']  # f1分数
 )
 
 
@@ -172,11 +166,11 @@ class Evaluator(Callback):
 
     def on_epoch_end(self, global_step, epoch, logs=None):
         train_acc = evaluate(train_dataloader, "train")
-        # print(f'train_acc: {train_acc:.5f}\n')
+
         test_acc = evaluate(test_dataloader, "test")
         if test_acc > self.best_val_acc:
             self.best_val_acc = test_acc
-            model.save_weights('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_CNN/best_model.pt')
+            model.save_weights('./BERT_CNN/best_model.pt')
         print(f'val_acc: {test_acc:.5f}, best_val_acc: {self.best_val_acc:.5f}\n')
 
 
@@ -184,9 +178,8 @@ if True:
     evaluator = Evaluator()
     model.fit(train_dataloader, epochs=20, callbacks=[evaluator])
 
-model.load_weights('E:/博士小论文/基于孪生BERT网络的应急物资分类标准类目映射/代码实现/BERTNN2/BERT_CNN/best_model.pt')
-# evaluate(test_dataloader, "test")
-
+model.load_weights('./BERT_CNN/best_model.pt')
+evaluate(test_dataloader, "test")
 
 pre = []
 gro = []

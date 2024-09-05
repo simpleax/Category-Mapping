@@ -1,5 +1,5 @@
 #! -*- coding: utf-8 -*-
-# 准确率 0.97509
+
 import json
 from bert4torch.tokenizers import Tokenizer
 from bert4torch.models import build_transformer_model, BaseModel
@@ -11,7 +11,6 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from sklearn import metrics
-import pdb
 import matplotlib.pyplot as plt
 
 maxlen = 256
@@ -84,9 +83,9 @@ def collate_fn(batch):
 
 
 # 加载数据集
-train_dataloader = DataLoader(MyDataset('./train.json'),
+train_dataloader = DataLoader(MyDataset('./data/train.json'),
                               batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-test_dataloader = DataLoader(MyDataset('./test.json'),
+test_dataloader = DataLoader(MyDataset('./data/test.json'),
                              batch_size=batch_size, collate_fn=collate_fn)
 
 
@@ -120,7 +119,10 @@ model = Model().to(device)
 model.compile(
     loss=nn.CrossEntropyLoss(),
     optimizer=optim.AdamW(model.parameters(), lr=2e-5),
-    metrics=['acc']
+    metrics=['acc'],   # 准确率accuracy
+    metrics2=['pre'],  # 精确率precision
+    metrics3=['rec'],  # 召回率rcall
+    metrics4=['f1']    # f1分数
 )
 
 
@@ -157,7 +159,7 @@ class Evaluator(Callback):
         test_acc = evaluate(test_dataloader, "test")
         if test_acc > self.best_val_acc:
             self.best_val_acc = test_acc
-            model.save_weights('./best_model.pt')
+            model.save_weights('./BERT-RNN/best_model.pt')
         print(f'val_acc: {test_acc:.5f}, best_val_acc: {self.best_val_acc:.5f}\n')
 
 
@@ -166,7 +168,7 @@ if True:
     model.fit(train_dataloader, epochs=20, callbacks=[evaluator])
 
 
-model.load_weights('./best_model.pt')
+model.load_weights('./BERT-RNN/best_model.pt')
 evaluate(test_dataloader, "test")
 
 pre = []
