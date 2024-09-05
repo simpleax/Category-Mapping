@@ -1,9 +1,6 @@
 ## Category Mapping of Emergency Supplies Classification Standard Based on BERT-TextCNN
 
 
-> This code is based on [sentence-transformers (0.4.1.2)](https://github.com/UKPLab/sentence-transformers)
-
-
 ### Data description (training data \ testing data)
 
 1. The experimental data are stored in the `data/` directory;
