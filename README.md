@@ -10,7 +10,7 @@
 #### If you don't have a GPU device available, you can use the free GPU device provided by [Google Colaboratory](https://colab.research.google.com/notebooks/intro.ipynb)
 
 ### Citation and Author
-If you use our experimental data or code in your work (in paper review), please cite [IPC2CLC](https://github.com/i-wanna-to/IPC2CLC/).
+If you use our experimental data or code in your work (in paper review), please cite [Category-Mapping](https://github.com/simpleax/Category-Mapping.git)).
 
 If you need to use our published experimental data and code, please contact us first and get consent before using it!
 
