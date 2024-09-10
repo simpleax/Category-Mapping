@@ -23,37 +23,6 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'      # 设置计算设
 # 建立分词器
 tokenizer = Tokenizer(dict_path, do_lower_case=True)
 
-
-def show_confusion_matrix(confusion, classes=["0", "1"], x_rot=-60, figsize=None, save=True):
-    """
-    绘制混淆矩阵
-    :param confusion:
-    :param classes:
-    :param x_rot:
-    :param figsize:
-    :param save:
-    :return:
-    """
-    if figsize is not None:
-        plt.rcParams['figure.figsize'] = figsize
-
-    plt.imshow(confusion, cmap=plt.cm.YlOrRd)
-    indices = range(len(confusion))
-    plt.xticks(indices, classes, rotation=x_rot, fontsize=12)
-    plt.yticks(indices, classes, fontsize=12)
-    plt.colorbar()
-    plt.xlabel('y_pred')
-    plt.ylabel('y_true')
-
-    # 显示数据
-    for first_index in range(len(confusion)):
-        for second_index in range(len(confusion[first_index])):
-            plt.text(first_index, second_index, confusion[first_index][second_index])
-
-    if save:
-        plt.savefig("./bert_textcnn_confusion_matrix.png")
-    plt.show()
-
 # 自定义的数据集类，它继承了PyTorch的内置ListDataset类，处理和管理数据
 class MyDataset(ListDataset):
     @staticmethod
@@ -195,17 +164,3 @@ class Evaluator(Callback):
 if True:
     evaluator = Evaluator()
     model.fit(train_dataloader, epochs=20, callbacks=[evaluator])
-
-model.load_weights('./BERT_TextCNN/best_model.pt')
-evaluate(test_dataloader, "test")
-
-pre = []
-gro = []
-for x_true, y_true in tqdm(test_dataloader):
-    y_pred = model.predict(x_true).argmax(axis=1)
-    pre += y_pred.tolist()
-    gro += y_true.tolist()
-
-confusion = metrics.confusion_matrix(gro, pre, labels=None)
-print(confusion)
-show_confusion_matrix(confusion)
