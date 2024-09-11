@@ -20,6 +20,6 @@ If you use our experimental data or code in your work (in paper review), please 
 
 If you need to use our published experimental data and code, please contact us first and get consent before using it!
 
-Email: Dr.Zhang, 20113051@bjtu.edu.cn
+Email: Dr.Zhang, zhangqiuxia268@163.com
 
 You can email me if you have questions.
